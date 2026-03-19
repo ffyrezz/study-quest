@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Quest — GPA 4.5 Campaign</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0e0d;--surface:#161513;--surface2:#1d1b18;--surface3:#242220;
+  --border:#2e2c29;--divider:#252320;
+  --text:#e8e5e0;--muted:#8a8780;--faint:#4a4845;
+  --gold:#f0b429;--golddim:#b8891f;--goldglow:rgba(240,180,41,0.15);
+  --xp:#4ade80;--xpdim:#166534;
+  --cstudy:#60a5fa;--cassign:#f472b6;--cdeadline:#fb923c;
+  --cexam:#a78bfa;--crest:#6ee7b7;--ctask:#94a3b8;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-xl:20px;
+  --font:'Satoshi',system-ui,sans-serif;
+  --xs:clamp(.75rem,.7rem + .25vw,.875rem);
+  --sm:clamp(.875rem,.8rem + .35vw,1rem);
+  --base:clamp(1rem,.95rem + .25vw,1.125rem);
+  --lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+  --xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:var(--sm);min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:58px 1fr;height:100dvh;overflow:hidden}
+.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;z-index:100}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:.5rem 0}
+.main{overflow-y:auto;padding:1.5rem}
+
+/* TOPBAR */
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:900;font-size:var(--base);letter-spacing:-.02em}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),#e07b00);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.logo-sub{color:var(--muted);font-size:var(--xs);font-weight:400}
+.topbar-right{display:flex;gap:1rem;align-items:center;margin-left:auto}
+.xp-wrap{display:flex;flex-direction:column;gap:3px;min-width:150px}
+.xp-meta{display:flex;justify-content:space-between;font-size:var(--xs);color:var(--muted)}
+.xp-track{height:7px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--xpdim),var(--xp));border-radius:99px;transition:width .6s cubic-bezier(.16,1,.3,1)}
+.streak{display:flex;align-items:center;gap:.25rem;background:var(--surface3);border:1px solid var(--border);padding:.2rem .75rem;border-radius:99px;font-size:var(--xs);font-weight:700;white-space:nowrap}
+.stat-chip{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap}
+.stat-chip span:first-child{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat-chip span:last-child{font-size:var(--sm);font-weight:700}
+
+/* SIDEBAR */
+.sb-title{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);padding:.5rem .75rem;margin-top:.5rem}
+.sb-item{display:flex;align-items:center;gap:.5rem;padding:.4rem .75rem;border-radius:var(--r-sm);cursor:pointer;font-size:var(--xs);color:var(--muted);transition:background .12s}
+.sb-item:hover,.sb-item.active{background:var(--surface3);color:var(--text)}
+.sb-item.today-item{color:var(--gold);font-weight:700}
+.sb-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .2s}
+.sb-item.done-day .sb-dot{background:var(--xp)}
+.sb-item.has-deadline .sb-dot{background:var(--cdeadline)}
+.sb-item.has-exam .sb-dot{background:var(--cexam)}
+.sb-right{margin-left:auto;font-size:9px;color:var(--faint)}
+.sb-divider{height:1px;background:var(--divider);margin:.5rem .75rem}
+.phase-pct{font-size:9px;color:var(--faint);margin-left:auto}
+
+/* DAY VIEW */
+.day-nav{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.nav-btn{width:34px;height:34px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--muted);font-size:18px}
+.nav-btn:hover:not(:disabled){background:var(--surface3);color:var(--text)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.nav-meta{font-size:var(--xs);color:var(--muted)}
+.today-badge{background:var(--goldglow);color:var(--gold);border:1px solid rgba(240,180,41,.3);padding:2px 10px;border-radius:99px;font-size:var(--xs);font-weight:700}
+
+.day-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:1rem}
+.day-title{font-size:var(--xl);font-weight:900;letter-spacing:-.03em;line-height:1}
+.day-phase{display:inline-flex;align-items:center;font-size:var(--xs);font-weight:700;padding:3px 10px;border-radius:99px;margin-top:.4rem}
+.day-xp-box{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.day-xp-label{font-size:var(--xs);color:var(--muted)}
+.day-xp-val{font-size:var(--lg);font-weight:900;color:var(--xp)}
+.day-xp-earned{font-size:var(--xs);color:var(--muted)}
+
+/* PROGRESS CARD */
+.prog-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem}
+.ring-wrap{position:relative;width:68px;height:68px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:var(--surface3);stroke-width:6}
+.ring-fill{fill:none;stroke:var(--gold);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)}
+.ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:900;color:var(--gold)}
+.prog-info{flex:1}
+.prog-title{font-weight:700;font-size:var(--base);margin-bottom:3px}
+.prog-sub{font-size:var(--xs);color:var(--muted)}
+.complete-all{padding:.5rem 1rem;background:linear-gradient(135deg,var(--gold),var(--golddim));color:#0f0e0d;border-radius:var(--r-md);font-weight:700;font-size:var(--sm);transition:all .2s;white-space:nowrap;flex-shrink:0}
+.complete-all:hover:not(:disabled){transform:scale(1.03);box-shadow:0 0 20px var(--goldglow)}
+.complete-all:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* QUEST SECTION */
+.quest-section{margin-bottom:1.5rem}
+.quest-section-title{font-size:var(--xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.quest-section-title::after{content:'';flex:1;height:1px;background:var(--divider)}
+
+/* QUEST CARD — THE KEY INTERACTIVE ELEMENT */
+.qcard{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:.9rem 1.1rem;
+  display:flex;
+  align-items:center;
+  gap:.9rem;
+  margin-bottom:.6rem;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  position:relative;
+  overflow:hidden;
+  transition:border-color .15s,box-shadow .15s,opacity .2s,transform .15s;
+}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.qcard[data-cat="study"]::before{background:var(--cstudy)}
+.qcard[data-cat="assignment"]::before{background:var(--cassign)}
+.qcard[data-cat="deadline"]::before{background:var(--cdeadline)}
+.qcard[data-cat="exam"]::before{background:var(--cexam)}
+.qcard[data-cat="rest"]::before{background:var(--crest)}
+.qcard[data-cat="task"]::before{background:var(--ctask)}
+.qcard:hover{border-color:var(--golddim);box-shadow:0 4px 16px rgba(0,0,0,.5);transform:translateY(-1px)}
+.qcard:active{transform:scale(.99)}
+.qcard.done{opacity:.45;border-color:var(--divider)}
+.qcard.done::before{background:var(--xp)}
+.qcard.done .q-text{text-decoration:line-through;color:var(--faint)}
+
+.q-check{width:22px;height:22px;border-radius:var(--r-sm);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:13px;color:transparent}
+.qcard.done .q-check{background:var(--xpdim);border-color:var(--xp);color:var(--xp)}
+.q-body{flex:1;min-width:0}
+.q-slot{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:3px}
+.q-text{font-size:var(--sm);font-weight:500;line-height:1.4}
+.q-key{font-size:9px;font-weight:700;color:var(--cdeadline);margin-left:.3rem}
+.q-right{display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;flex-shrink:0}
+.q-cat{font-size:9px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:99px;font-weight:700}
+.cat-study{background:rgba(96,165,250,.12);color:var(--cstudy)}
+.cat-assignment{background:rgba(244,114,182,.12);color:var(--cassign)}
+.cat-deadline{background:rgba(251,146,60,.15);color:var(--cdeadline)}
+.cat-exam{background:rgba(167,139,250,.15);color:var(--cexam)}
+.cat-rest{background:rgba(110,231,183,.12);color:var(--crest)}
+.cat-task{background:rgba(148,163,184,.1);color:var(--ctask)}
+.q-xp{font-size:var(--xs);font-weight:700;color:var(--xp)}
+.qcard.done .q-xp{color:var(--faint)}
+
+/* TOAST */
+.toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-lg);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;min-width:250px;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:tIn .35s cubic-bezier(.16,1,.3,1) forwards,tOut .35s ease-in 3.65s forwards}
+.t-icon{font-size:22px}
+.t-title{font-weight:700;font-size:var(--sm)}
+.t-sub{font-size:var(--xs);color:var(--muted)}
+@keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(16px)}}
+
+/* XP FLOAT */
+.xpfloat{position:fixed;pointer-events:none;font-size:1.2rem;font-weight:900;color:var(--xp);z-index:1000;animation:xpup 1.1s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes xpup{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-55px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(.9)}}
+
+/* ALL DONE */
+.all-done{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.all-done .icon{font-size:56px;margin-bottom:1rem}
+.all-done .ttl{font-size:var(--xl);font-weight:900;color:var(--xp);margin-bottom:.5rem}
+
+
+/* ===== HEALTH TAB ===== */
+.tab-bar{display:flex;gap:.25rem;margin-bottom:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:.3rem}
+.tab-btn{flex:1;padding:.45rem .75rem;border-radius:calc(var(--r-lg) - 4px);font-size:var(--xs);font-weight:700;text-align:center;cursor:pointer;transition:all .15s;color:var(--muted)}
+.tab-btn.active{background:var(--surface3);color:var(--text)}
+
+/* habit cards */
+.habit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.habit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;transition:border-color .15s,box-shadow .15s}
+.habit-card:hover{border-color:var(--golddim);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.habit-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem}
+.habit-icon{font-size:22px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border-radius:var(--r-md);flex-shrink:0}
+.habit-name{font-weight:700;font-size:var(--sm)}
+.habit-cat{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.habit-xp-tag{margin-left:auto;font-size:var(--xs);font-weight:700;color:var(--xp);white-space:nowrap}
+
+/* number input */
+.habit-input-row{display:flex;align-items:center;gap:.5rem}
+.habit-input{width:80px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-md);padding:.35rem .6rem;color:var(--text);font-size:var(--sm);font-weight:700;text-align:center;transition:border-color .15s;-moz-appearance:textfield}
+.habit-input::-webkit-outer-spin-button,.habit-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.habit-input:focus{outline:none;border-color:var(--gold)}
+.habit-unit{font-size:var(--xs);color:var(--muted)}
+.habit-log-btn{padding:.35rem .85rem;background:var(--gold);color:#0f0e0d;border-radius:var(--r-md);font-weight:700;font-size:var(--xs);transition:all .15s;white-space:nowrap}
+.habit-log-btn:hover{background:var(--golddim)}
+.habit-log-btn.logged{background:var(--xpdim);color:var(--xp);cursor:default}
+
+/* checkbox habit */
+.habit-check-row{display:flex;gap:.4rem;flex-wrap:wrap}
+.set-btn{width:32px;height:32px;border-radius:var(--r-sm);background:var(--surface3);border:1px solid var(--border);font-size:12px;font-weight:700;color:var(--muted);transition:all .15s;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.set-btn.done{background:var(--xpdim);border-color:var(--xp);color:var(--xp)}
+.set-btn:hover:not(.done){background:var(--surface3);border-color:var(--gold);color:var(--gold)}
+
+/* streak bar */
+.habit-streak-row{display:flex;align-items:center;gap:.4rem;margin-top:.6rem}
+.h-streak-dots{display:flex;gap:3px}
+.h-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.h-dot.filled{background:var(--gold)}
+.h-dot.today{background:var(--xp);box-shadow:0 0 6px var(--xp)}
+.h-streak-label{font-size:var(--xs);color:var(--muted);margin-left:.25rem}
+
+/* daily summary bar */
+.health-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.hs-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hs-val{font-size:var(--lg);font-weight:900}
+.hs-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* weekly chart */
+.week-chart{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.wc-title{font-size:var(--xs);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem}
+.wc-bars{display:flex;align-items:flex-end;gap:4px;height:60px}
+.wc-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.wc-bar{width:100%;border-radius:3px 3px 0 0;background:var(--surface3);min-height:4px;transition:height .4s cubic-bezier(.16,1,.3,1)}
+.wc-bar.has-data{background:linear-gradient(180deg,var(--gold),var(--golddim))}
+.wc-day-label{font-size:9px;color:var(--faint)}
+.wc-today-label{color:var(--gold)}
+
+
+.class-block{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-md);padding:.55rem .85rem;display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem}
+.class-block-icon{font-size:15px}
+.class-block-text{font-size:var(--xs);color:var(--muted);font-weight:600}
+.class-block-time{font-size:9px;color:var(--faint);margin-left:auto;white-space:nowrap}
+.class-sched-wrap{margin-bottom:.85rem}
+
+.qcard.rescheduled .q-slot::after{content:" ↩ rescheduled";font-size:8px;background:color-mix(in oklab,var(--surface3) 70%,var(--cprimary) 30%);color:var(--faint);padding:.05rem .35rem;border-radius:99px;margin-left:.35rem;vertical-align:middle}
+
+.class-sched-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:.35rem}
+.qcard.in-class{opacity:.7}
+.qcard.in-class::before{content:"📚 Class Day";position:absolute;top:.4rem;right:.6rem;font-size:9px;background:color-mix(in oklab,var(--surface3) 80%,var(--gold) 20%);color:var(--muted);padding:.1rem .45rem;border-radius:99px;border:1px solid var(--golddim)}
+
+
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem}
+.kpi-icon{font-size:22px;margin-bottom:.4rem}
+.kpi-val{font-size:2rem;font-weight:900;line-height:1;letter-spacing:-.04em}
+.kpi-label{font-size:var(--xs);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem}
+.kpi-sub{font-size:var(--xs);color:var(--faint);margin-top:.25rem}
+.kpi-card.accent{border-color:var(--golddim);background:color-mix(in oklab,var(--surface) 85%,var(--gold) 15%)}
+.kpi-card.accent .kpi-val{color:var(--gold)}
+.kpi-card.kgreen{border-color:color-mix(in oklab,var(--border) 50%,#4ade80 50%);background:color-mix(in oklab,var(--surface) 90%,#4ade80 10%)}
+.kpi-card.kgreen .kpi-val{color:#4ade80}
+.kpi-card.kblue{border-color:color-mix(in oklab,var(--border) 50%,var(--cprimary) 50%);background:color-mix(in oklab,var(--surface) 90%,var(--cprimary) 10%)}
+.kpi-card.kblue .kpi-val{color:var(--cprimary)}
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:.85rem}
+@media(max-width:550px){.dash-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.upcoming-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;margin-bottom:.75rem}
+.uc-title{font-size:var(--xs);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.6rem}
+.uc-item{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--divider)}
+.uc-item:last-child{border-bottom:none;padding-bottom:0}
+.uc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.uc-days{font-size:var(--xs);color:var(--muted);white-space:nowrap;min-width:50px;text-align:right}
+.uc-name{font-size:var(--xs);font-weight:600;flex:1}
+.uc-badge{font-size:8px;text-transform:uppercase;letter-spacing:.05em;padding:.1rem .35rem;border-radius:99px;white-space:nowrap}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;margin-bottom:.75rem}
+.chart-title{font-size:var(--xs);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.75rem}
+.chart-canvas-wrap{position:relative;height:150px}
+.chart-canvas-wrap.tall{height:210px}
+.rings-wrap{display:flex;align-items:center;gap:1.5rem;padding:.25rem 0}
+.rings-legend{display:flex;flex-direction:column;gap:.45rem}
+.ring-leg-item{display:flex;align-items:center;gap:.5rem}
+.ring-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ring-leg-label{font-size:var(--xs);color:var(--muted);flex:1}
+.ring-leg-val{font-size:var(--xs);font-weight:700}
+.hm-wrap{display:flex;gap:3px;flex-wrap:wrap;margin:.4rem 0 .25rem}
+.hm-cell{width:13px;height:13px;border-radius:2px;background:var(--surface3)}
+.hm-cell.l1{background:color-mix(in oklab,var(--gold) 20%,var(--surface3) 80%)}
+.hm-cell.l2{background:color-mix(in oklab,var(--gold) 45%,var(--surface3) 55%)}
+.hm-cell.l3{background:color-mix(in oklab,var(--gold) 70%,var(--surface3) 30%)}
+.hm-cell.l4{background:var(--gold)}
+.hm-lbl{font-size:8px;color:var(--faint)}
+.fit-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.fit-stat{flex:1;min-width:75px;background:var(--surface3);border-radius:var(--r-md);padding:.55rem .65rem;text-align:center}
+.fit-val{font-size:var(--lg);font-weight:900;line-height:1}
+.fit-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:.15rem}
+.insight-chip{background:color-mix(in oklab,var(--surface) 80%,var(--gold) 20%);border:1px solid var(--golddim);border-radius:var(--r-md);padding:.55rem .8rem;font-size:var(--xs);margin-bottom:.5rem;display:flex;align-items:flex-start;gap:.5rem}
+.insight-icon{font-size:15px;flex-shrink:0}
+.dash-section-title{font-size:var(--lg);font-weight:900;letter-spacing:-.03em;margin:1.1rem 0 .65rem}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
+
+@media(max-width:700px){
+  .app{grid-template-columns:1fr;grid-template-rows:58px 1fr}
+  .sidebar{display:none}
+  .main{padding:1rem}
+  .topbar-right{gap:.5rem}
+  .xp-wrap{min-width:120px}
+  .streak{display:none}
+}
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">⚔️</div>
+    <div>
+      <div>Study Quest</div>
+      <div class="logo-sub">GPA 4.5 Campaign</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="xp-wrap">
+      <div class="xp-meta">
+        <span>Lv.<b id="lv">1</b></span>
+        <span id="xp-meta-text">0 / 500 XP</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="streak">🔥 <span id="streak">0</span>d</div>
+    <div class="streak" id="save-indicator" style="color:var(--xp);border-color:var(--xpdim)">💾 Saved</div>
+    <div class="stat-chip"><span>Total XP</span><span id="total-xp" style="color:var(--xp)">0</span></div>
+    <div class="stat-chip"><span>Done</span><span id="done-count">0/0</span></div>
+    <button onclick="resetConfirm()" style="padding:.2rem .75rem;border-radius:99px;background:var(--surface3);border:1px solid var(--border);font-size:var(--xs);color:var(--muted)" title="Reset all progress">↺ Reset</button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar"></aside>
+
+<!-- MAIN -->
+<main class="main" id="main"></main>
+
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+const PLAN = [{"date": "2026-03-19", "label": "Thu Mar 19", "phase": "Phase 1", "tasks": [{"id": "2026-03-19-0", "slot": "AM 9–11:30", "text": "In class all morning — use FA Seminar to passively absorb content", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-03-19-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — rest after, prep tomorrow's tasks mentally", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-03-19-2", "slot": "EVE 8–9", "text": "REST — you just got home from a 9hr school day", "category": "rest", "xp": 20, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-03-20", "label": "Fri Mar 20", "phase": "Phase 1", "tasks": [{"id": "2026-03-20-0", "slot": "AM 9–11:30", "text": "ML4 Career Roadmap — flesh out sections", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-19-0_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: ML4 Career Roadmap — draft structure & content", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-20-1", "slot": "PM 3–5:30", "text": "FM Presentation — build slide deck", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-19-1_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: FM Presentation — begin slide outline", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-20-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Python — skim Week 1–3 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-21", "label": "Sat Mar 21", "phase": "Phase 1", "tasks": [{"id": "2026-03-21-1", "slot": "PM 3–5:30", "text": "NULLSPACE", "category": "rest", "xp": 20, "done": false}, {"id": "2026-03-21-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Econs — skim Week 1–3 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-22", "label": "Sun Mar 22", "phase": "Phase 1", "tasks": [{"id": "2026-03-22-0", "slot": "AM 9–11:30", "text": "NULLSPACE", "category": "rest", "xp": 20, "done": false}, {"id": "2026-03-22-1", "slot": "PM 3–5:30", "text": "NULLSPACE", "category": "rest", "xp": 20, "done": false}, {"id": "2026-03-22-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FM — skim Week 1–3 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-23", "label": "Mon Mar 23", "phase": "Phase 1", "tasks": [{"id": "2026-03-23-0", "slot": "AM 9–11:30", "text": "In class 9:30–4:20 — AB1201, ML0004 Tutorial, HE5091 Lecture", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-03-23-1", "slot": "PM 3–5:30", "text": "Still in class / travelling home — arrive ~6:15pm", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-03-23-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FA — Week 4–5 slides (light, you're tired)", "category": "study", "xp": 40, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)", "ML0004 SGCC Mock Interview (14:30–16:00)"]}, {"date": "2026-03-24", "label": "Tue Mar 24", "phase": "Phase 1", "tasks": [{"id": "2026-03-24-0", "slot": "AM 9–11:30", "text": "ML4 Career Roadmap — final review, submit buffer", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-03-23-0_mr", "slot": "AM 9–11:30", "text": "↩ MOVED FROM MON: ML4 Career Roadmap — polish & finalize", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-24-1", "slot": "PM 3–5:30", "text": "FM Presentation — design & flow", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-23-1_mr", "slot": "PM 3–5:30", "text": "↩ MOVED FROM MON: FM Presentation — content complete", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-24-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Python — Week 4–5 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-25", "label": "Wed Mar 25", "phase": "Phase 1", "tasks": [{"id": "2026-03-25-0", "slot": "AM 9–11:30", "text": "⚠️ ML4 CAREER ROADMAP SUBMIT (due Mar 26)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-03-25-1", "slot": "PM 3–5:30", "text": "FM Presentation — rehearsal run 1", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-26-0_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: FM Presentation — rehearsal run 2 + refine", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-25-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Econs — Week 4–5 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-26", "label": "Thu Mar 26", "phase": "Phase 1", "tasks": [{"id": "2026-03-26-0", "slot": "AM 9–11:30", "text": "In class all morning — listen actively in CC0001 & FA Seminar", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-03-26-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — light wind-down after Python seminar", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-03-26-2", "slot": "EVE 8–9", "text": "REST — home at 8pm after full Thursday", "category": "rest", "xp": 20, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-03-27", "label": "Fri Mar 27", "phase": "Phase 1", "tasks": [{"id": "2026-03-27-0", "slot": "AM 9–11:30", "text": "FM Presentation — final polish", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-26-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: CC1 Assignment 2 — understand requirements, start outline", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-27-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 2 — draft section 1", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-27-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FA — Week 6–7 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-28", "label": "Sat Mar 28", "phase": "Phase 2", "tasks": [{"id": "2026-03-28-0", "slot": "AM 9–11:30", "text": "FM Presentation — full dress rehearsal (slides + speech)", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-28-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 2 — draft sections 2 & 3", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-28-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Python — Week 6–7 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-29", "label": "Sun Mar 29", "phase": "Phase 2", "tasks": [{"id": "2026-03-29-0", "slot": "AM 9–11:30", "text": "FM Presentation — final run, tighten timing", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-29-1", "slot": "PM 3–5:30", "text": "Rest / light Econs reading", "category": "rest", "xp": 20, "done": false}, {"id": "2026-03-29-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Econs — Week 6–7 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-03-30", "label": "Mon Mar 30", "phase": "Phase 2", "tasks": [{"id": "2026-03-30-0", "slot": "AM 9–11:30", "text": "⚠️ FM PRESENTATION DAY (due Mar 30)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-03-30-1", "slot": "PM 3–5:30", "text": "Travelling home from FM Presentation day — arrive ~6:15pm", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-03-30-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FM — Week 6–7 slides (light, post-presentation day)", "category": "study", "xp": 40, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}, {"date": "2026-03-31", "label": "Tue Mar 31", "phase": "Phase 2", "tasks": [{"id": "2026-03-31-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 2 — complete draft", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-30-1_mr", "slot": "AM 9–11:30", "text": "↩ MOVED FROM MON: CC1 Assignment 2 — major writing push", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-03-31-1", "slot": "PM 3–5:30", "text": "Econs Quiz 2 revision — Week 1–6 key concepts", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-03-31-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FA — Week 8–9 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-01", "label": "Wed Apr 1", "phase": "Phase 2", "tasks": [{"id": "2026-04-01-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 2 — review & refine", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-01-1", "slot": "PM 3–5:30", "text": "Econs Quiz 2 — practice questions", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-02-0_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: CC1 Assignment 2 — near-final draft", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-01-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Python — Week 8–9 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-02", "label": "Thu Apr 2", "phase": "Phase 2", "tasks": [{"id": "2026-04-02-0", "slot": "AM 9–11:30", "text": "In class all morning — use tutorials to spot exam question patterns", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-02-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — only EVE slot available for work tonight", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-02-2", "slot": "EVE 8–9", "text": "REST — decompress after 9hrs of classes", "category": "rest", "xp": 20, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-04-03", "label": "Fri Apr 3", "phase": "Phase 2", "tasks": [{"id": "2026-04-03-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 2 — final edits", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-02-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: Econs Quiz 2 — timed mock attempt", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-03-1", "slot": "PM 3–5:30", "text": "Python Group Project — check in with group, align on tasks", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-03-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FM — Week 8–9 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-04", "label": "Sat Apr 4", "phase": "Phase 2", "tasks": [{"id": "2026-04-04-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 2 — SUBMIT (due Apr 8, submit early today)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-04-1", "slot": "PM 3–5:30", "text": "Econs Quiz 2 — full content review, all diagrams from memory", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-04-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FA — Week 10–11 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-05", "label": "Sun Apr 5", "phase": "Phase 2", "tasks": [{"id": "2026-04-05-0", "slot": "AM 9–11:30", "text": "Econs Quiz 2 — final cram + concept map", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-05-1", "slot": "PM 3–5:30", "text": "Python Group Project — work session with group", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-05-2", "slot": "EVE 8–9", "text": "Rest — let Econs content consolidate overnight", "category": "rest", "xp": 20, "done": false}]}, {"date": "2026-04-06", "label": "Mon Apr 6", "phase": "Phase 3", "tasks": [{"id": "2026-04-06-0", "slot": "AM 9–11:30", "text": "In class 9:30–4:20 — use Econs lecture to spot Quiz 2 patterns", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-06-1", "slot": "PM 3–5:30", "text": "Still in class / travelling home — arrive ~6:15pm", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-06-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FM — Week 10–11 slides (light, you're tired)", "category": "study", "xp": 40, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}, {"date": "2026-04-07", "label": "Tue Apr 7", "phase": "Phase 3", "tasks": [{"id": "2026-04-07-0", "slot": "AM 9–11:30", "text": "⚠️ ECONS QUIZ 2 DAY", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-06-0_mr", "slot": "AM 9–11:30", "text": "↩ MOVED FROM MON: Econs Quiz 2 — light final review (don't over-cram)", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-07-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 2 final check — submit tonight if not done", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-06-1_mr", "slot": "PM 3–5:30", "text": "↩ MOVED FROM MON: Python Group Project — build session", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-07-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Python — Week 10–11 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-08", "label": "Wed Apr 8", "phase": "Phase 3", "tasks": [{"id": "2026-04-08-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 3 — understand requirements, start research", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-08-1", "slot": "PM 3–5:30", "text": "Python Group Project — integration session", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-09-0_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: EXCEL — start Weekly Quiz backlog + Final Assignment", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-08-2", "slot": "EVE 8–9", "text": "⚠️ CC1 ASSIGN 2 SUBMIT by 2359", "category": "deadline", "xp": 150, "done": false}]}, {"date": "2026-04-09", "label": "Thu Apr 9", "phase": "Phase 3", "tasks": [{"id": "2026-04-09-0", "slot": "AM 9–11:30", "text": "In class all morning — mentally note any EXCEL / CC1 concepts from class", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-09-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — decompress after 9 hours of school", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-09-2", "slot": "EVE 8–9", "text": "REST — home at 8pm, light reading only if you feel it", "category": "rest", "xp": 20, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-04-10", "label": "Fri Apr 10", "phase": "Phase 3", "tasks": [{"id": "2026-04-10-0", "slot": "AM 9–11:30", "text": "EXCEL — continue Weekly Quiz + Assignment work", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-09-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: CC1 Assignment 3 — outline & draft plan", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-10-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 3 — writing push", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-10-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Econs — Week 12 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-11", "label": "Sat Apr 11", "phase": "Phase 3", "tasks": [{"id": "2026-04-11-0", "slot": "AM 9–11:30", "text": "Python Group Project — final integration + testing", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-11-1", "slot": "PM 3–5:30", "text": "EXCEL — bulk complete Weekly Quiz + Assignment", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-11-2", "slot": "EVE 8–9", "text": "CC1 Assignment 3 — continued writing", "category": "assignment", "xp": 90, "done": false}]}, {"date": "2026-04-12", "label": "Sun Apr 12", "phase": "Phase 3", "tasks": [{"id": "2026-04-12-0", "slot": "AM 9–11:30", "text": "Python Group Project — final review + submit buffer", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-12-1", "slot": "PM 3–5:30", "text": "EXCEL — review and finalise", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-12-2", "slot": "EVE 8–9", "text": "CC1 Assignment 3 — draft review", "category": "assignment", "xp": 90, "done": false}]}, {"date": "2026-04-13", "label": "Mon Apr 13", "phase": "Phase 3", "tasks": [{"id": "2026-04-13-0", "slot": "AM 9–11:30", "text": "⚠️ PYTHON GROUP PROJECT SUBMIT", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-13-1", "slot": "PM 3–5:30", "text": "Travelling home after submit day — arrive ~6:15pm, decompress", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-13-2", "slot": "EVE 8–9", "text": "EXCEL — final polish (light, 45min max)", "category": "assignment", "xp": 50, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}, {"date": "2026-04-14", "label": "Tue Apr 14", "phase": "Phase 3", "tasks": [{"id": "2026-04-14-0", "slot": "AM 9–11:30", "text": "EXCEL — complete all remaining work", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-13-1_mr", "slot": "AM 9–11:30", "text": "↩ MOVED FROM MON: CC1 Assignment 3 — major writing block", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-14-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 3 — writing continued", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-14-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FM — Week 12 slides", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-15", "label": "Wed Apr 15", "phase": "Phase 3", "tasks": [{"id": "2026-04-15-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 3 — near-complete draft", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-15-1", "slot": "PM 3–5:30", "text": "EXCEL — final review", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-16-0_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: CC1 Assignment 3 — final polish", "category": "assignment", "xp": 90, "done": false, "rescheduled": true}, {"id": "2026-04-15-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min FA — final recap", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-16", "label": "Thu Apr 16", "phase": "Phase 3", "tasks": [{"id": "2026-04-16-0", "slot": "AM 9–11:30", "text": "In class all morning — last week of classes, absorb everything", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-16-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — EXCEL submit buffer tomorrow", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-16-2", "slot": "EVE 8–9", "text": "REST — last big Thursday, you earned it", "category": "rest", "xp": 20, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-04-17", "label": "Fri Apr 17", "phase": "Phase 3", "tasks": [{"id": "2026-04-17-0", "slot": "AM 9–11:30", "text": "⚠️ EXCEL QUIZ + FINAL ASSIGNMENT SUBMIT (due Apr 17)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-16-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: EXCEL — submit buffer prep", "category": "deadline", "xp": 150, "done": false, "rescheduled": true}, {"id": "2026-04-17-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 3 — final edits", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-17-2", "slot": "EVE 8–9", "text": "SLOW BURN: 45min Econs — final recap", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-18", "label": "Sat Apr 18", "phase": "Phase 3", "tasks": [{"id": "2026-04-18-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 3 — absolute final review", "category": "assignment", "xp": 90, "done": false}, {"id": "2026-04-18-1", "slot": "PM 3–5:30", "text": "CC1 Assignment 3 — submit (due Apr 20 9am)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-18-2", "slot": "EVE 8–9", "text": "REST — assignments done. Begin exam mode mentally.", "category": "rest", "xp": 20, "done": false}]}, {"date": "2026-04-19", "label": "Sun Apr 19", "phase": "Phase 3", "tasks": [{"id": "2026-04-19-0", "slot": "AM 9–11:30", "text": "CC1 Assignment 3 — last checks (submit by tonight latest)", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-19-1", "slot": "PM 3–5:30", "text": "FA Exam Prep — Week 1–5 topic review", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-19-2", "slot": "EVE 8–9", "text": "FA Exam Prep — journal entries practice", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-20", "label": "Mon Apr 20", "phase": "Phase 3", "tasks": [{"id": "2026-04-20-0", "slot": "AM 9–11:30", "text": "⚠️ CC1 ASSIGN 3 DUE 9AM — SUBMIT", "category": "deadline", "xp": 150, "done": false}, {"id": "2026-04-20-1", "slot": "PM 3–5:30", "text": "Travelling home after last class day — arrive ~6:15pm", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-20-2", "slot": "EVE 8–9", "text": "FA Exam Prep — adjustments & accruals (light review, 45min)", "category": "study", "xp": 40, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}, {"date": "2026-04-21", "label": "Tue Apr 21", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-21-0", "slot": "AM 9–11:30", "text": "FA — Week 6–9 topics, ratio analysis", "category": "task", "xp": 70, "done": false}, {"id": "2026-04-20-1_mr", "slot": "AM 9–11:30", "text": "↩ MOVED FROM MON: FA Exam Prep — financial statements deep dive", "category": "task", "xp": 70, "done": false, "rescheduled": true}, {"id": "2026-04-21-1", "slot": "PM 3–5:30", "text": "FA — past year paper attempt (full timed)", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-21-2", "slot": "EVE 8–9", "text": "FA — review mistakes from past paper", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-22", "label": "Wed Apr 22", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-22-0", "slot": "AM 9–11:30", "text": "FA — weak areas identified from mock", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-22-1", "slot": "PM 3–5:30", "text": "Python — Week 1–5 syntax & logic review", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-23-0_r", "slot": "PM 3–5:30", "text": "↩ MOVED FROM THU: Python — loops, functions, data structures practice", "category": "study", "xp": 60, "done": false, "rescheduled": true}, {"id": "2026-04-22-2", "slot": "EVE 8–9", "text": "FA — write mental cheatsheet from memory", "category": "task", "xp": 70, "done": false}]}, {"date": "2026-04-23", "label": "Thu Apr 23", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-23-0", "slot": "AM 9–11:30", "text": "In class — use Python seminar to mentally test your code knowledge", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-23-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — decompress, light Econs flashcard review after", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-23-2", "slot": "EVE 8–9", "text": "Light Econs flashcard review before sleep (30min max)", "category": "study", "xp": 25, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-04-24", "label": "Fri Apr 24", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-24-0", "slot": "AM 9–11:30", "text": "Python — past paper / practice questions timed", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-23-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: Econs — Week 1–5 key diagrams (S&D, elasticity)", "category": "task", "xp": 70, "done": false, "rescheduled": true}, {"id": "2026-04-24-1", "slot": "PM 3–5:30", "text": "Econs — market structures, macroeconomics topics", "category": "task", "xp": 70, "done": false}, {"id": "2026-04-24-2", "slot": "EVE 8–9", "text": "Econs — all diagrams reproduced from memory", "category": "task", "xp": 70, "done": false}]}, {"date": "2026-04-25", "label": "Sat Apr 25", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-25-0", "slot": "AM 9–11:30", "text": "FA — final consolidation, all topics reviewed", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-25-1", "slot": "PM 3–5:30", "text": "Econs — past paper attempt (full timed)", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-25-2", "slot": "EVE 8–9", "text": "Econs — review mistakes, fix weak diagrams", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-04-26", "label": "Sun Apr 26", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-26-0", "slot": "AM 9–11:30", "text": "FA — mental cheatsheet reproduced from memory", "category": "task", "xp": 70, "done": false}, {"id": "2026-04-26-1", "slot": "PM 3–5:30", "text": "FA — final light review, formula refresh", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-26-2", "slot": "EVE 8–9", "text": "REST — early sleep, no cramming tonight", "category": "rest", "xp": 20, "done": false}]}, {"date": "2026-04-27", "label": "Mon Apr 27", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-27-0", "slot": "AM 9–11:30", "text": "FA — 2hr final review only key formulas & entries", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-27-1", "slot": "PM 3–5:30", "text": "⚠️ FA EXAM 1PM–3:30PM", "category": "exam", "xp": 300, "done": false}, {"id": "2026-04-27-2", "slot": "EVE 8–9", "text": "Python — light review, rest early", "category": "rest", "xp": 20, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}, {"date": "2026-04-28", "label": "Tue Apr 28", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-28-0", "slot": "AM 9–11:30", "text": "Python — final code practice, key syntax review", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-28-1", "slot": "PM 3–5:30", "text": "⚠️ PYTHON EXAM 5PM–6:30PM", "category": "exam", "xp": 300, "done": false}, {"id": "2026-04-28-2", "slot": "EVE 8–9", "text": "Econs — light review, rest early", "category": "rest", "xp": 20, "done": false}]}, {"date": "2026-04-29", "label": "Wed Apr 29", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-29-0", "slot": "AM 9–11:30", "text": "Econs — final diagram + formula recall practice", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-29-1", "slot": "PM 3–5:30", "text": "⚠️ ECONS EXAM 5PM–7:30PM", "category": "exam", "xp": 300, "done": false}, {"id": "2026-04-29-2", "slot": "EVE 8–9", "text": "FM — start TVM & NPV review", "category": "study", "xp": 60, "done": false}, {"id": "2026-04-30-0_r", "slot": "EVE 8–9", "text": "↩ MOVED FROM THU: FM — Time Value of Money (TVM) full topic", "category": "task", "xp": 70, "done": false, "rescheduled": true}]}, {"date": "2026-04-30", "label": "Thu Apr 30", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-04-30-0", "slot": "AM 9–11:30", "text": "In class — mentally connect FM concepts to seminar content", "category": "study", "xp": 30, "done": false, "class_note": true}, {"id": "2026-04-30-1", "slot": "PM 3–5:30", "text": "In class until 6:20pm — EVE session is your only FM grind today", "category": "rest", "xp": 20, "done": false, "class_note": true}, {"id": "2026-04-30-2", "slot": "EVE 8–9", "text": "FM EVE — calculation drill (30min, you have 4 days left)", "category": "study", "xp": 35, "done": false}], "classes": ["HE5091 Econs Tutorial (09:30–10:20)", "CC0001 Tutorial (10:30–12:20)", "AD1102 FA Seminar (13:30–16:20)", "AB0403 Python Seminar (16:30–18:20)"]}, {"date": "2026-05-01", "label": "Fri May 1", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-05-01-0", "slot": "AM 9–11:30", "text": "FM — WACC, cost of capital topics", "category": "task", "xp": 70, "done": false}, {"id": "2026-04-30-1_r", "slot": "AM 9–11:30", "text": "↩ MOVED FROM THU: FM — NPV, IRR, payback period problems", "category": "task", "xp": 70, "done": false, "rescheduled": true}, {"id": "2026-05-01-1", "slot": "PM 3–5:30", "text": "FM — capital structure & dividend policy", "category": "task", "xp": 70, "done": false}, {"id": "2026-05-01-2", "slot": "EVE 8–9", "text": "FM — practice problems on WACC", "category": "study", "xp": 60, "done": false}]}, {"date": "2026-05-02", "label": "Sat May 2", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-05-02-0", "slot": "AM 9–11:30", "text": "FM — past year paper attempt (full timed)", "category": "study", "xp": 60, "done": false}, {"id": "2026-05-02-1", "slot": "PM 3–5:30", "text": "FM — review mistakes, revisit weak areas", "category": "study", "xp": 60, "done": false}, {"id": "2026-05-02-2", "slot": "EVE 8–9", "text": "FM — mental cheatsheet from memory", "category": "task", "xp": 70, "done": false}]}, {"date": "2026-05-03", "label": "Sun May 3", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-05-03-0", "slot": "AM 9–11:30", "text": "FM — all formulas reproduced from memory", "category": "task", "xp": 70, "done": false}, {"id": "2026-05-03-1", "slot": "PM 3–5:30", "text": "FM — final weak area focus", "category": "task", "xp": 70, "done": false}, {"id": "2026-05-03-2", "slot": "EVE 8–9", "text": "REST — no cramming, early sleep", "category": "rest", "xp": 20, "done": false}]}, {"date": "2026-05-04", "label": "Mon May 4", "phase": "Phase 4 — EXAM BLITZ", "tasks": [{"id": "2026-05-04-0", "slot": "AM 9–11:30", "text": "⚠️ FM EXAM 9AM–11:30AM", "category": "exam", "xp": 300, "done": false}, {"id": "2026-05-04-1", "slot": "PM 3–5:30", "text": "🎉 DONE. REST.", "category": "rest", "xp": 20, "done": false}, {"id": "2026-05-04-2", "slot": "EVE 8–9", "text": "🎉 DONE. REST.", "category": "rest", "xp": 20, "done": false}], "classes": ["AB1201 FM Seminar (09:30–12:20)", "ML0004 Tutorial (12:30–14:20)", "HE5091 Econs Lecture (14:30–16:20)"]}];
+
+// STATE — persisted in localStorage (survives browser close/reopen)
+const SS_KEY = "sq_state_v2";
+let S = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return { xp:0, streak:0, done:{}, view: getTodayISO() };
+}
+function saveState() {
+  try { localStorage.setItem(SS_KEY, JSON.stringify(S)); } catch(e){}
+}
+function getTodayISO() {
+  const d = new Date("2026-03-19"); // campaign start / today
+  // Use actual today if available
+  const now = new Date();
+  const iso = now.toISOString().slice(0,10);
+  const first = PLAN[0].date, last = PLAN[PLAN.length-1].date;
+  return iso >= first && iso <= last ? iso : first;
+}
+
+// ensure view is valid
+function validDate(iso) {
+  return PLAN.find(d=>d.date===iso) ? iso : PLAN[0].date;
+}
+S.view = validDate(S.view || getTodayISO());
+
+const XP_LEVELS = [0,500,1200,2200,3500,5000,7000,9500,12500,16000,20000];
+function getLvInfo(xp) {
+  let lv = 1;
+  for(let i=1;i<XP_LEVELS.length;i++){if(xp>=XP_LEVELS[i])lv=i+1;else break;}
+  const cur = XP_LEVELS[lv-1]||0, nxt = XP_LEVELS[lv]||XP_LEVELS[XP_LEVELS.length-1];
+  return {lv, pct:Math.min(((xp-cur)/(nxt-cur))*100,100), cur:xp-cur, need:nxt-cur};
+}
+function getDayData(iso){return PLAN.find(d=>d.date===iso)}
+function getDayIdx(iso){return PLAN.findIndex(d=>d.date===iso)}
+function isDayDone(iso){const d=getDayData(iso);return d&&d.tasks.length>0&&d.tasks.every(t=>S.done[t.id])}
+function dayProgress(iso){
+  const d=getDayData(iso);if(!d)return{t:0,dn:0,xp:0,totalXP:0};
+  let dn=0,xp=0,totalXP=0;
+  d.tasks.forEach(t=>{totalXP+=t.xp;if(S.done[t.id]){dn++;xp+=t.xp;}});
+  return{t:d.tasks.length,dn,xp,totalXP};
+}
+function totalProgress(){
+  let t=0,dn=0;
+  PLAN.forEach(d=>d.tasks.forEach(t2=>{t++;if(S.done[t2.id])dn++;}));
+  return{t,dn};
+}
+function phaseColor(p){
+  if(p.includes("1"))return"#60a5fa";
+  if(p.includes("2"))return"#f0b429";
+  if(p.includes("3"))return"#f472b6";
+  if(p.includes("4")||p.includes("BLITZ"))return"#a78bfa";
+  return"#94a3b8";
+}
+
+// ===== RENDER =====
+function render() {
+  renderTopbar();
+  renderSidebar();
+  renderMain();
+  saveState();
+}
+
+function renderTopbar() {
+  const lv = getLvInfo(S.xp);
+  document.getElementById("lv").textContent = lv.lv;
+  document.getElementById("xp-meta-text").textContent = `${lv.cur} / ${lv.need} XP`;
+  document.getElementById("xp-fill").style.width = lv.pct + "%";
+  document.getElementById("total-xp").textContent = S.xp.toLocaleString();
+  document.getElementById("streak").textContent = S.streak;
+  const {t,dn} = totalProgress();
+  document.getElementById("done-count").textContent = `${dn}/${t}`;
+}
+
+function renderSidebar() {
+  const sb = document.getElementById("sidebar");
+  const today = getTodayISO();
+
+  // Phases
+  const phases = {};
+  PLAN.forEach(d=>{
+    if(!phases[d.phase]) phases[d.phase]={dates:[],color:phaseColor(d.phase)};
+    phases[d.phase].dates.push(d.date);
+  });
+
+  let html = '<div class="sb-title">Phases</div>';
+  Object.entries(phases).forEach(([name,info])=>{
+    const done = info.dates.filter(d=>isDayDone(d)).length;
+    const pct = Math.round((done/info.dates.length)*100);
+    const shortName = name.replace("Phase 4 — EXAM BLITZ","⚔️ Exam Blitz").replace(/Phase /,"Ph");
+    html += `<div class="sb-item" data-goto="${info.dates[0]}" style="cursor:pointer">
+      <span style="width:7px;height:7px;border-radius:50%;background:${info.color};flex-shrink:0;display:inline-block"></span>
+      <span>${shortName}</span>
+      <span class="phase-pct">${pct}%</span>
+    </div>`;
+  });
+
+  html += '<div class="sb-divider"></div><div class="sb-title">Daily Log</div>';
+  PLAN.forEach(d=>{
+    const done = isDayDone(d.date);
+    const hasDead = d.tasks.some(t=>t.category==="deadline");
+    const hasExam = d.tasks.some(t=>t.category==="exam");
+    const isToday = d.date===today;
+    const isActive = d.date===S.view;
+    const cls = [
+      "sb-item",
+      isToday?"today-item":"",
+      isActive?"active":"",
+      done?"done-day":"",
+      hasDead&&!done?"has-deadline":"",
+      hasExam&&!done?"has-exam":""
+    ].filter(Boolean).join(" ");
+    const check = done ? '<span class="sb-right">✓</span>' : '';
+    html += `<div class="${cls}" data-goto="${d.date}">
+      <span class="sb-dot"></span>
+      <span>${d.label}</span>
+      ${check}
+    </div>`;
+  });
+
+  sb.innerHTML = html;
+
+  // Bind sidebar clicks
+  sb.querySelectorAll("[data-goto]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      S.view = el.dataset.goto;
+      render();
+      // scroll active into view
+      setTimeout(()=>el.scrollIntoView({block:"nearest",behavior:"smooth"}),50);
+    });
+  });
+}
+
+function renderMain() {
+  const d = getDayData(S.view);
+  if(!d){document.getElementById("main").innerHTML="<p>No data</p>";return;}
+  if(currentTab==="health"){renderHealth();return;}
+  const prog = dayProgress(S.view);
+  const pct = d.tasks.length>0 ? Math.round((prog.dn/prog.t)*100) : 0;
+  const R=30, circ=2*Math.PI*R, offset=circ-(pct/100)*circ;
+  const allDone = prog.dn===prog.t && prog.t>0;
+  const idx = getDayIdx(S.view);
+  const today = getTodayISO();
+  const pc = phaseColor(d.phase);
+
+  let html = `
+  <div class="tab-bar">
+    <div class="tab-btn active" onclick="switchTab('study')">📚 Study</div>
+    <div class="tab-btn" onclick="switchTab('health')">💪 Health</div>
+    <div class="tab-btn" onclick="switchTab('dashboard')">📊 Stats</div>
+  </div>
+  <div class="day-nav">
+    <button class="nav-btn" id="btn-prev" ${idx===0?"disabled":""}>&#8592;</button>
+    <button class="nav-btn" id="btn-next" ${idx===PLAN.length-1?"disabled":""}>&#8594;</button>
+    <span class="nav-meta">Day ${idx+1} / ${PLAN.length}</span>
+    ${d.date===today?'<span class="today-badge">TODAY</span>':''}
+  </div>
+
+  <div class="day-header">
+    <div>
+      <div class="day-title">${d.label}</div>
+      <div class="day-phase" style="color:${pc};background:${pc}1a;border:1px solid ${pc}33">${d.phase}</div>
+    </div>
+    <div class="day-xp-box">
+      <div class="day-xp-label">Day XP Pool</div>
+      <div class="day-xp-val">+${prog.totalXP}</div>
+      <div class="day-xp-earned">Earned: ${prog.xp} XP</div>
+    </div>
+  </div>
+
+  <div class="prog-card">
+    <div class="ring-wrap">
+      <svg width="68" height="68" viewBox="0 0 68 68">
+        <circle class="ring-track" cx="34" cy="34" r="${R}"/>
+        <circle class="ring-fill" cx="34" cy="34" r="${R}"
+          stroke-dasharray="${circ.toFixed(1)}"
+          stroke-dashoffset="${offset.toFixed(1)}"
+          stroke="${allDone?"var(--xp)":"var(--gold)"}"/>
+      </svg>
+      <div class="ring-text">${pct}%</div>
+    </div>
+    <div class="prog-info">
+      <div class="prog-title">${allDone?"🏆 Day Complete!":prog.dn+" / "+prog.t+" quests done"}</div>
+      <div class="prog-sub">${allDone?"All quests cleared. Legendary.":(prog.t-prog.dn)+" remaining · "+(prog.totalXP-prog.xp)+" XP left"}</div>
+    </div>
+    <button class="complete-all" id="btn-all" ${allDone?"disabled":""}>
+      ${allDone?"✓ Cleared":"⚡ Complete All"}
+    </button>
+  </div>`;
+
+  if(d.tasks.length===0){
+    html += `<div class="all-done"><div class="icon">🏖️</div><div class="ttl">Rest Day</div><p>No quests. Recharge.</p></div>`;
+  } else {
+    const slots = [
+      {key:"AM 9–11:30", label:"⚔️ Morning Block (9:00 – 11:30 AM)"},
+      {key:"PM 3–5:30",  label:"🗡️ Afternoon Block (3:00 – 5:30 PM)"},
+      {key:"EVE 8–9",    label:"🌙 Evening Slow Burn (8:00 – 9:00 PM)"},
+    ];
+    // Build class lookup for this day
+    const dayClasses = d.classes || [];
+
+    slots.forEach(({key,label})=>{
+      const tasks = d.tasks.filter(t=>t.slot===key);
+      if(!tasks.length) return;
+      // Check if this slot is blocked by class
+      const slotBlocked = tasks.some(t=>t.class_note);
+      const slotTitle = slotBlocked
+        ? `${label} <span style="font-size:9px;background:var(--surface3);color:var(--muted);padding:.1rem .5rem;border-radius:99px;border:1px solid var(--border);margin-left:.5rem;vertical-align:middle">&#127979; In Class</span>`
+        : label;
+      html += `<div class="quest-section"><div class="quest-section-title">${slotTitle}</div>`;
+      if(slotBlocked){
+        const slotClasses = dayClasses.filter(c=>{
+          const m=c.match(/\(([^)]+)\)$/);
+          if(!m) return false;
+          const [cs,ce]=m[1].split('\u2013').map(x=>{ const [h,min]=x.trim().split(':').map(Number); return h*60+(min||0); });
+          const smap={'AM 9\u201311:30':[9*60,11*60+30],'PM 3\u20135:30':[15*60,17*60+30],'EVE 8\u20139':[20*60,21*60]};
+          const [ss,se]=smap[key]||[0,0];
+          return cs<se && ce>ss;
+        });
+        slotClasses.forEach(c=>{
+          const m2=c.match(/^(.*?)\s*\(([^)]+)\)$/);
+          const cn=m2?m2[1].trim():c, ct=m2?m2[2]:'';
+          html+=`<div class="class-block"><span class="class-block-icon">&#127979;</span><span class="class-block-text">${cn}</span><span class="class-block-time">${ct}</span></div>`;
+        });
+      }
+      tasks.forEach(t=>{
+        const done = !!S.done[t.id];
+        const isKey = t.text.includes("\u26a0\ufe0f") || t.text.includes("⚠️");
+        const inClass = t.class_note ? 'in-class' : '';
+        const reschedCls = t.rescheduled ? 'rescheduled' : '';
+        html += `<div class="qcard ${done?"done":""} ${inClass} ${reschedCls}" data-cat="${t.category}" data-tid="${t.id}">
+          <div class="q-check">${done?"✓":""}</div>
+          <div class="q-body">
+            <div class="q-slot">${t.slot}${isKey?" ⚡ KEY":""}</div>
+            <div class="q-text">${t.text.replace("⚠️","").trim()}</div>
+          </div>
+          <div class="q-right">
+            <span class="q-cat cat-${t.category}">${t.category}</span>
+            <span class="q-xp">+${t.xp} XP</span>
+          </div>
+        </div>`;
+      });
+      html += "</div>";
+    });
+  }
+
+  document.getElementById("main").innerHTML = html;
+
+  // Wire up buttons
+  const btnPrev = document.getElementById("btn-prev");
+  const btnNext = document.getElementById("btn-next");
+  const btnAll  = document.getElementById("btn-all");
+
+  if(btnPrev) btnPrev.addEventListener("click", ()=>{
+    if(idx>0){S.view=PLAN[idx-1].date;render();}
+  });
+  if(btnNext) btnNext.addEventListener("click", ()=>{
+    if(idx<PLAN.length-1){S.view=PLAN[idx+1].date;render();}
+  });
+  if(btnAll) btnAll.addEventListener("click", ()=>completeAllDay(d));
+
+  // Wire quest cards — use event delegation on main for reliability
+  document.getElementById("main").querySelectorAll(".qcard").forEach(card=>{
+    card.addEventListener("click", function(e){
+      const tid = this.dataset.tid;
+      const task = d.tasks.find(t=>t.id===tid);
+      if(task) toggleTask(task, e);
+    });
+  });
+}
+
+// ===== INTERACTIONS =====
+function toggleTask(task, e) {
+  const prevDone = isDayDone(S.view);
+  const prevLv = getLvInfo(S.xp).lv;
+
+  if(S.done[task.id]){
+    delete S.done[task.id];
+    S.xp = Math.max(0, S.xp - task.xp);
+  } else {
+    S.done[task.id] = true;
+    S.xp += task.xp;
+    floatXP(e.clientX, e.clientY, task.xp);
+    // level up check
+    const newLv = getLvInfo(S.xp).lv;
+    if(newLv > prevLv) toast("⬆️",`Level Up! → Lv.${newLv}`,"Keep the streak alive.");
+    // category achievements
+    if(task.category==="exam") toast("🎓","Exam Slain!","You showed up. That's everything.");
+    else if(task.category==="deadline") toast("📬","Quest Submitted!","Deadline cleared.");
+    // milestone
+    const {dn} = totalProgress();
+    if(dn===1) toast("🌟","First Quest!","You started. Hardest part done.");
+    if(dn===10) toast("🔥","On a Roll!","10 quests. Stay locked in.");
+    if(dn===25) toast("⚔️","Committed!","25 quests cleared.");
+    if(dn===50) toast("💎","Mid-Sem Warrior","50 quests done.");
+  }
+
+  const nowDone = isDayDone(S.view);
+  if(!prevDone && nowDone){
+    toast("🏆","Day Cleared!",`${S.view} — All quests done!`);
+    confetti();
+  }
+  render();
+}
+
+function completeAllDay(day){
+  let added=0;
+  day.tasks.forEach(t=>{if(!S.done[t.id]){S.done[t.id]=true;S.xp+=t.xp;added+=t.xp;}});
+  if(added>0){toast("⚡","Day Obliterated!",`+${added} XP earned`);confetti();}
+  render();
+}
+
+function floatXP(x,y,xp){
+  const el=document.createElement("div");
+  el.className="xpfloat";el.textContent=`+${xp} XP`;
+  el.style.left=(x-20)+"px";el.style.top=(y-10)+"px";
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+
+function toast(icon,title,sub){
+  const wrap=document.getElementById("toasts");
+  const el=document.createElement("div");
+  el.className="toast";
+  el.innerHTML=`<div class="t-icon">${icon}</div><div><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(),4100);
+}
+
+function confetti(){
+  const em=["⭐","✨","🎉","💫","🏆","⚡","🔥","💎"];
+  for(let i=0;i<14;i++){
+    setTimeout(()=>{
+      const el=document.createElement("div");
+      el.style.cssText=`position:fixed;font-size:22px;pointer-events:none;z-index:9999;left:${15+Math.random()*70}%;top:${5+Math.random()*40}%;animation:xpup 1.4s ease-out forwards`;
+      el.textContent=em[Math.floor(Math.random()*em.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1500);
+    },i*70);
+  }
+}
+
+// Keyboard nav
+document.addEventListener("keydown",e=>{
+  const idx=getDayIdx(S.view);
+  if(e.key==="ArrowLeft"&&idx>0){S.view=PLAN[idx-1].date;render();}
+  else if(e.key==="ArrowRight"&&idx<PLAN.length-1){S.view=PLAN[idx+1].date;render();}
+});
+
+
+// ===== HEALTH MODULE =====
+const HABITS = [
+  // cardio
+  {id:"walk",   name:"Walking",      icon:"🚶",  cat:"Cardio",   type:"number", unit:"km",   target:2,   xp:40,  color:"#60a5fa"},
+  {id:"run",    name:"Running",      icon:"🏃",  cat:"Cardio",   type:"number", unit:"km",   target:3,   xp:70,  color:"#34d399"},
+  // strength — sets-based
+  {id:"pushup", name:"Push-ups",     icon:"💪",  cat:"Strength", type:"sets",   sets:3, reps:"15", xp:30,  color:"#f472b6"},
+  {id:"pullup", name:"Pull-ups",     icon:"🏋️", cat:"Strength", type:"sets",   sets:3, reps:"8",  xp:40,  color:"#a78bfa"},
+  {id:"squat",  name:"Squats",       icon:"🦵",  cat:"Strength", type:"sets",   sets:3, reps:"20", xp:30,  color:"#fb923c"},
+  {id:"crunch", name:"Crunches",     icon:"🔥",  cat:"Core",     type:"sets",   sets:3, reps:"20", xp:25,  color:"#f0b429"},
+  {id:"plank",  name:"Plank",        icon:"🧱",  cat:"Core",     type:"number", unit:"sec", target:60,  xp:25,  color:"#fbbf24"},
+  {id:"lunge",  name:"Lunges",       icon:"🦿",  cat:"Strength", type:"sets",   sets:3, reps:"12", xp:25,  color:"#c084fc"},
+  // recovery
+  {id:"stretch",name:"Stretching",   icon:"🧘",  cat:"Recovery", type:"number", unit:"min",  target:10,  xp:20,  color:"#6ee7b7"},
+  {id:"sleep",  name:"Sleep",        icon:"😴",  cat:"Recovery", type:"number", unit:"hrs",  target:7,   xp:50,  color:"#818cf8"},
+  {id:"water",  name:"Water",        icon:"💧",  cat:"Recovery", type:"number", unit:"L",    target:2,   xp:15,  color:"#38bdf8"},
+];
+
+const H_KEY = "sq_health_v1";
+
+function loadHealth(){
+  try{const r=localStorage.getItem(H_KEY);if(r)return JSON.parse(r);}catch(e){}
+  return {};
+}
+function saveHealth(){
+  try{localStorage.setItem(H_KEY,JSON.stringify(SH));}catch(e){}
+}
+
+let SH = loadHealth();
+// SH structure: { "2026-03-19": { walk: 2.5, pushup: [true,true,false], sleep: 7, ... } }
+
+function todayHealthKey(){ return S.view; }
+function getHDay(date){ if(!SH[date]) SH[date]={}; return SH[date]; }
+
+function logHabit(hid, value){
+  const hday = getHDay(S.view);
+  const h = HABITS.find(x=>x.id===hid);
+  hday[hid] = value;
+  saveHealth();
+  // XP for completing a habit
+  const wasEarned = (S.done["h_"+S.view+"_"+hid]);
+  const earned = habitEarned(h, value);
+  if(earned && !wasEarned){
+    S.done["h_"+S.view+"_"+hid] = true;
+    S.xp += h.xp;
+    floatXP(window.innerWidth/2, 80, h.xp);
+    saveState();
+  } else if(!earned && wasEarned){
+    delete S.done["h_"+S.view+"_"+hid];
+    S.xp = Math.max(0, S.xp - h.xp);
+    saveState();
+  }
+  renderHealth();
+  renderTopbar();
+}
+
+function habitEarned(h, value){
+  if(h.type==="number") return value >= h.target;
+  if(h.type==="sets") return Array.isArray(value) && value.every(v=>v);
+  return false;
+}
+
+function toggleSet(hid, setIdx){
+  const hday = getHDay(S.view);
+  const h = HABITS.find(x=>x.id===hid);
+  if(!Array.isArray(hday[hid])) hday[hid] = new Array(h.sets).fill(false);
+  hday[hid][setIdx] = !hday[hid][setIdx];
+  logHabit(hid, hday[hid]);
+}
+
+function getStreakFor(hid){
+  // count consecutive days up to today with earned habit
+  const dates = Object.keys(SH).sort().reverse();
+  let streak = 0;
+  const today = getTodayISO();
+  for(let i=0;i<dates.length;i++){
+    const d = dates[i];
+    if(d > today) continue;
+    const val = SH[d]?.[hid];
+    const h = HABITS.find(x=>x.id===hid);
+    if(h && val !== undefined && habitEarned(h, val)) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function renderHealth(){
+  const main = document.getElementById("main");
+  const hday = getHDay(S.view);
+  const today = getTodayISO();
+
+  // Summary stats
+  let totalHXP=0, earnedHXP=0, habDone=0;
+  HABITS.forEach(h=>{
+    totalHXP += h.xp;
+    const val = hday[h.id];
+    if(val!==undefined && habitEarned(h,val)){earnedHXP+=h.xp;habDone++;}
+  });
+
+  // Weekly XP for chart
+  const last7 = getLast7Dates(S.view);
+
+  let html = `
+  <div class="tab-bar">
+    <div class="tab-btn" onclick="switchTab('study')">📚 Study</div>
+    <div class="tab-btn active" onclick="switchTab('health')">💪 Health</div>
+    <div class="tab-btn" onclick="switchTab('dashboard')">📊 Stats</div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div>
+      <div style="font-size:var(--xl);font-weight:900;letter-spacing:-.03em;line-height:1">${S.view === today ? "Today" : getDayData(S.view)?.label || S.view}</div>
+      <div style="font-size:var(--xs);color:var(--muted);margin-top:.2rem">Health & Fitness Log</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:var(--lg);font-weight:900;color:var(--xp)">+${earnedHXP} XP</div>
+      <div style="font-size:var(--xs);color:var(--muted)">${habDone}/${HABITS.length} habits</div>
+    </div>
+  </div>
+
+  <div class="health-summary">
+    ${summaryItem("🏃","Cardio",["walk","run"],hday)}
+    ${summaryItem("💪","Strength",["pushup","pullup","squat","lunge"],hday)}
+    ${summaryItem("🔥","Core",["crunch","plank"],hday)}
+    ${summaryItem("🧘","Recovery",["stretch","sleep","water"],hday)}
+    <div style="margin-left:auto">
+      <div style="font-size:var(--xs);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem">Week Streak</div>
+      <div class="h-streak-dots">${last7.map(d=>{
+        const anyDone = HABITS.some(h=>{const v=SH[d]?.[h.id];return v!==undefined&&habitEarned(h,v);});
+        const isT = d===today, isV = d===S.view;
+        return `<div class="h-dot ${anyDone?'filled':''} ${isT||isV?'today':''}"></div>`;
+      }).join('')}</div>
+    </div>
+  </div>
+
+  <div class="week-chart">
+    <div class="wc-title">7-Day Habit Completion</div>
+    <div class="wc-bars">${renderWeekBars(last7)}</div>
+  </div>
+
+  <div class="habit-grid">
+    ${HABITS.map(h=>renderHabitCard(h, hday)).join("")}
+  </div>`;
+
+  main.innerHTML = html;
+
+  // Wire number inputs
+  HABITS.filter(h=>h.type==="number").forEach(h=>{
+    const inp = document.getElementById("hinp_"+h.id);
+    const btn = document.getElementById("hbtn_"+h.id);
+    if(!inp||!btn) return;
+    btn.addEventListener("click",()=>{
+      const v = parseFloat(inp.value)||0;
+      if(v>0) logHabit(h.id, v);
+    });
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"){const v=parseFloat(inp.value)||0;if(v>0)logHabit(h.id,v);}});
+  });
+
+  // Wire set buttons
+  HABITS.filter(h=>h.type==="sets").forEach(h=>{
+    for(let i=0;i<h.sets;i++){
+      const btn = document.getElementById(`hset_${h.id}_${i}`);
+      if(btn) btn.addEventListener("click",()=>toggleSet(h.id,i));
+    }
+  });
+}
+
+function summaryItem(icon,label,ids,hday){
+  const done = ids.filter(id=>{
+    const h=HABITS.find(x=>x.id===id);
+    const v=hday[id];
+    return h&&v!==undefined&&habitEarned(h,v);
+  }).length;
+  const col = done===ids.length?"var(--xp)":done>0?"var(--gold)":"var(--muted)";
+  return `<div class="hs-item"><div class="hs-val" style="color:${col}">${done}/${ids.length}</div><div class="hs-label">${icon} ${label}</div></div>`;
+}
+
+function getLast7Dates(anchor){
+  const dates=[];
+  const d=new Date(anchor);
+  for(let i=6;i>=0;i--){
+    const dd=new Date(d);dd.setDate(d.getDate()-i);
+    dates.push(dd.toISOString().slice(0,10));
+  }
+  return dates;
+}
+
+function renderWeekBars(dates){
+  const maxPossible = HABITS.reduce((a,h)=>a+h.xp,0);
+  return dates.map(d=>{
+    const earned = HABITS.reduce((a,h)=>{
+      const v=SH[d]?.[h.id];
+      return a+(v!==undefined&&habitEarned(h,v)?h.xp:0);
+    },0);
+    const pct = maxPossible>0?(earned/maxPossible)*100:0;
+    const today=getTodayISO();
+    const isT=d===today||d===S.view;
+    const label=d.slice(8); // day number
+    return `<div class="wc-bar-wrap">
+      <div class="wc-bar ${earned>0?'has-data':''} ${isT?'today-bar':''}" style="height:${Math.max(pct,0)}%;${isT?'background:linear-gradient(180deg,var(--xp),var(--xpdim))':''}"></div>
+      <div class="wc-day-label ${isT?'wc-today-label':''}">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHabitCard(h, hday){
+  const val = hday[h.id];
+  const earned = val!==undefined && habitEarned(h,val);
+  const streak = getStreakFor(h.id);
+
+  let inputHtml = '';
+  if(h.type==="number"){
+    const logged = typeof val==="number";
+    inputHtml = `<div class="habit-input-row">
+      <input class="habit-input" id="hinp_${h.id}" type="number" min="0" step="${h.unit==='km'?'0.5':h.unit==='hrs'?'0.5':'1'}" value="${logged?val:''}" placeholder="0" ${earned?'style="border-color:var(--xp)"':''}>
+      <span class="habit-unit">${h.unit} / ${h.target}${h.unit}</span>
+      <button class="habit-log-btn ${earned?'logged':''}" id="hbtn_${h.id}" ${earned?'disabled':''}>
+        ${earned?'✓ Done':'Log'}
+      </button>
+    </div>`;
+  } else {
+    const sets = Array.isArray(val) ? val : new Array(h.sets).fill(false);
+    const setButtons = sets.map((s,i)=>`<button class="set-btn ${s?'done':''}" id="hset_${h.id}_${i}">S${i+1}</button>`).join('');
+    inputHtml = `<div>
+      <div style="font-size:var(--xs);color:var(--muted);margin-bottom:.4rem">${h.sets} sets × ${h.reps} reps</div>
+      <div class="habit-check-row">${setButtons}</div>
+    </div>`;
+  }
+
+  const streakDots = `<div class="habit-streak-row">
+    <div class="h-streak-dots">${[...Array(Math.min(streak,7))].map((_,i)=>`<div class="h-dot filled ${i===Math.min(streak,7)-1?'today':''}"></div>`).join('')}${[...Array(Math.max(0,7-Math.min(streak,7)))].map(()=>`<div class="h-dot"></div>`).join('')}</div>
+    <span class="h-streak-label">${streak>0?streak+"d streak":"No streak yet"}</span>
+  </div>`;
+
+  return `<div class="habit-card" style="${earned?'border-color:'+h.color+'44':''}">
+    <div class="habit-header">
+      <div class="habit-icon">${h.icon}</div>
+      <div>
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-cat">${h.cat}</div>
+      </div>
+      <div class="habit-xp-tag">+${h.xp} XP</div>
+    </div>
+    ${inputHtml}
+    ${streakDots}
+  </div>`;
+}
+
+// ===== TAB SWITCHING =====
+
+function switchTab(tab){
+  currentTab = tab;
+  if(tab==="health") renderHealth();
+  else if(tab==="dashboard") renderDashboard();
+  else renderMain();
+  renderSidebar();
+}
+
+
+// ===== DASHBOARD =====
+let _dCharts = {};
+function _destroyCharts(){Object.values(_dCharts).forEach(c=>{try{c.destroy();}catch(e){}});_dCharts={};}
+
+function renderDashboard(){
+  _destroyCharts();
+  const main=document.getElementById("main");
+  const today=getTodayISO();
+  const tDate=new Date(today);
+
+  // Study KPIs
+  let total=0,done=0;
+  PLAN.forEach(d=>d.tasks.forEach(t=>{total++;if(S.done[t.id])done++;}));
+  const pct=total>0?Math.round(done/total*100):0;
+
+  // Streak
+  let streak=0;
+  const allDates=[...PLAN.map(d=>d.date)].sort().reverse();
+  for(const d of allDates){
+    if(d>today)continue;
+    const dd=PLAN.find(x=>x.date===d);
+    if(!dd)break;
+    if(dd.tasks.some(t=>S.done[t.id]))streak++;
+    else break;
+  }
+
+  // Fitness totals
+  let kmR=0,kmW=0,sl=0,slN=0,wt=0,wtN=0,pu=0,pl=0,sq=0,cr=0;
+  Object.entries(SH).forEach(([d,v])=>{
+    if(v.run)kmR+=parseFloat(v.run)||0;
+    if(v.walk)kmW+=parseFloat(v.walk)||0;
+    if(v.sleep){sl+=parseFloat(v.sleep)||0;slN++;}
+    if(v.water){wt+=parseFloat(v.water)||0;wtN++;}
+    if(Array.isArray(v.pushup))pu+=v.pushup.filter(Boolean).length;
+    if(Array.isArray(v.pullup))pl+=v.pullup.filter(Boolean).length;
+    if(Array.isArray(v.squat))sq+=v.squat.filter(Boolean).length;
+    if(Array.isArray(v.crunch))cr+=v.crunch.filter(Boolean).length;
+  });
+  const avgSl=slN>0?(sl/slN).toFixed(1):"-";
+  const avgWt=wtN>0?(wt/wtN).toFixed(1):"-";
+
+  // Upcoming (next 35 days)
+  const up=[];
+  PLAN.forEach(day=>{
+    const diff=Math.round((new Date(day.date)-tDate)/86400000);
+    if(diff<0||diff>35)return;
+    day.tasks.forEach(t=>{
+      if(t.category==="exam"||t.category==="deadline"){
+        up.push({date:day.date,text:t.text,cat:t.category,days:diff,done:!!S.done[t.id]});
+      }
+    });
+  });
+  up.sort((a,b)=>a.days-b.days);
+
+  // Phase progress
+  const phases={};
+  PLAN.forEach(d=>{
+    if(!phases[d.phase])phases[d.phase]={t:0,dn:0};
+    d.tasks.forEach(t=>{phases[d.phase].t++;if(S.done[t.id])phases[d.phase].dn++;});
+  });
+
+  // Heatmap last 47 days
+  const hmCells=[];
+  for(let i=46;i>=0;i--){
+    const d=new Date(tDate);d.setDate(tDate.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const day=PLAN.find(x=>x.date===ds);
+    let score=0;
+    if(day&&day.tasks.length>0){const dn=day.tasks.filter(t=>S.done[t.id]).length;score=dn/day.tasks.length;}
+    hmCells.push({ds,score});
+  }
+
+  // Last 14 days cardio/sleep/water
+  const l14=[]; for(let i=13;i>=0;i--){const d=new Date(tDate);d.setDate(tDate.getDate()-i);l14.push(d.toISOString().slice(0,10));}
+  const l14lbl=l14.map(d=>d.slice(5));
+  const runD=l14.map(d=>SH[d]?.run||0);
+  const walkD=l14.map(d=>SH[d]?.walk||0);
+  const sleepD=l14.map(d=>SH[d]?.sleep||0);
+  const waterD=l14.map(d=>SH[d]?.water||0);
+
+  // Rings today
+  const todH=SH[today]||{};
+  const rings=[
+    {label:"Cardio",col:"#f43f5e",ids:["walk","run"],tot:2},
+    {label:"Strength",col:"#f59e0b",ids:["pushup","pullup","squat","lunge"],tot:4},
+    {label:"Recovery",col:"#10b981",ids:["stretch","sleep","water"],tot:3},
+  ];
+  rings.forEach(r=>{r.done=r.ids.filter(id=>{const h=HABITS.find(x=>x.id===id);const v=todH[id];return h&&v!==undefined&&habitEarned(h,v);}).length;});
+
+  // Insights
+  const ins=[];
+  if(streak>=3)ins.push({i:"&#128293;",t:streak+"-day study streak! Keep it alive."});
+  if(kmR>0)ins.push({i:"&#127939;",t:"Total run: "+kmR.toFixed(1)+"km. Avg "+((kmR/Math.max(slN,1))).toFixed(1)+"km per active day."});
+  if(avgSl!=="-"&&parseFloat(avgSl)<7)ins.push({i:"&#128564;",t:"Avg sleep "+avgSl+"hrs — below 7hr target. Sleep = memory consolidation."});
+  if(avgSl!=="-"&&parseFloat(avgSl)>=7)ins.push({i:"&#128164;",t:"Averaging "+avgSl+"hrs sleep — on target. Keep it up."});
+  const nxt=up.find(u=>u.cat==="exam"&&!u.done);
+  if(nxt)ins.push({i:"&#9876;",t:"Next exam in "+nxt.days+"d: "+nxt.text.replace(/\u26a0\ufe0f|\u26a0\uFE0F|\u26a0/g,"").trim().slice(0,50)});
+  if(pct>0)ins.push({i:"&#128218;",t:pct+"% of campaign done — "+done+"/"+total+" quests cleared."});
+
+  const catCol={exam:"var(--cexam)",deadline:"var(--cdeadline)"};
+
+  let out=`
+  <div class="tab-bar">
+    <div class="tab-btn" onclick="switchTab('study')">&#128218; Study</div>
+    <div class="tab-btn" onclick="switchTab('health')">&#128170; Health</div>
+    <div class="tab-btn active" onclick="switchTab('dashboard')">&#128202; Stats</div>
+  </div>
+  <div class="dash-section-title">Command Centre</div>
+  <div class="dash-kpi-grid">
+    <div class="kpi-card accent"><div class="kpi-icon">&#9889;</div><div class="kpi-val">${S.xp.toLocaleString()}</div><div class="kpi-label">Total XP</div><div class="kpi-sub">Level ${Math.floor(S.xp/500)+1}</div></div>
+    <div class="kpi-card kgreen"><div class="kpi-icon">&#9989;</div><div class="kpi-val">${pct}%</div><div class="kpi-label">Campaign</div><div class="kpi-sub">${done}/${total} quests</div></div>
+    <div class="kpi-card kblue"><div class="kpi-icon">&#128293;</div><div class="kpi-val">${streak}</div><div class="kpi-label">Day Streak</div><div class="kpi-sub">${streak>0?"Keep going!":"Start today"}</div></div>
+    <div class="kpi-card"><div class="kpi-icon">&#127939;</div><div class="kpi-val">${(kmR+kmW).toFixed(1)}</div><div class="kpi-label">Total km</div><div class="kpi-sub">${kmR.toFixed(1)}km run</div></div>
+  </div>
+
+  ${ins.map(x=>`<div class="insight-chip"><span class="insight-icon">${x.i}</span><span>${x.t}</span></div>`).join("")}
+
+  <div class="upcoming-card">
+    <div class="uc-title">&#9876; Upcoming Deadlines &amp; Exams</div>
+    ${up.slice(0,9).map(u=>{
+      const col=catCol[u.cat]||"var(--muted)";
+      const dLabel=u.days===0?"Today":u.days===1?"Tomorrow":u.days+"d";
+      const txt=u.text.replace(/\u26a0\ufe0f\s?|\u26a0\uFE0F\s?|\u26a0\s?/g,"").replace(/\u21a9.*?:/,"").trim().slice(0,52);
+      return `<div class="uc-item"><div class="uc-dot" style="background:${col}"></div><div class="uc-name" style="${u.done?"opacity:.4;text-decoration:line-through":""}">${txt}</div><div class="uc-badge" style="background:color-mix(in oklab,${col} 18%,transparent);color:${col}">${u.cat}</div><div class="uc-days" style="color:${u.days<=3?"var(--cdeadline)":"var(--muted)"}">${dLabel}</div></div>`;
+    }).join("")}
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Phase Completion</div>
+    <div class="chart-canvas-wrap"><canvas id="dc-phase"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Activity Heatmap <span style="font-size:9px;font-weight:400;color:var(--faint)">last 47 days</span></div>
+    <div class="hm-wrap">${hmCells.map(c=>{const lv=c.score===0?"":c.score<.25?"l1":c.score<.5?"l2":c.score<.75?"l3":"l4";return `<div class="hm-cell ${lv}" title="${c.ds}: ${Math.round(c.score*100)}%"></div>`;}).join("")}</div>
+    <div class="hm-lbl">Less &#9617;&#9617;&#9617;&#9617;&#9619; More</div>
+  </div>
+
+  <div class="dash-section-title"><span style="color:var(--gold)">&#9679;</span> Fitness</div>
+
+  <div class="chart-card">
+    <div class="chart-title">Today's Activity Rings</div>
+    <div class="rings-wrap">
+      <svg width="110" height="110" viewBox="0 0 110 110" id="dc-rings"></svg>
+      <div class="rings-legend">
+        ${rings.map(r=>`<div class="ring-leg-item"><div class="ring-leg-dot" style="background:${r.col}"></div><div class="ring-leg-label">${r.label}</div><div class="ring-leg-val" style="color:${r.col}">${r.done}/${r.tot}</div></div>`).join("")}
+        <div style="font-size:9px;color:var(--faint);margin-top:.35rem">Log in &#128170; Health tab</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">All-Time Totals</div>
+    <div class="fit-row">
+      <div class="fit-stat"><div class="fit-val" style="color:#f43f5e">${kmR.toFixed(1)}</div><div class="fit-lbl">km run</div></div>
+      <div class="fit-stat"><div class="fit-val" style="color:#60a5fa">${kmW.toFixed(1)}</div><div class="fit-lbl">km walked</div></div>
+      <div class="fit-stat"><div class="fit-val" style="color:#f472b6">${pu*15}</div><div class="fit-lbl">push-ups</div></div>
+      <div class="fit-stat"><div class="fit-val" style="color:#a78bfa">${pl*8}</div><div class="fit-lbl">pull-ups</div></div>
+      <div class="fit-stat"><div class="fit-val" style="color:#fb923c">${sq*20}</div><div class="fit-lbl">squats</div></div>
+      <div class="fit-stat"><div class="fit-val" style="color:#818cf8">${avgSl}</div><div class="fit-lbl">avg sleep</div></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Cardio — Last 14 Days (km)</div>
+    <div class="chart-canvas-wrap"><canvas id="dc-cardio"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Sleep &amp; Water — Last 14 Days</div>
+    <div class="chart-canvas-wrap"><canvas id="dc-sleep"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">7-Day Fitness Radar</div>
+    <div class="chart-canvas-wrap tall"><canvas id="dc-radar"></canvas></div>
+  </div>
+  `;
+
+  main.innerHTML=out;
+
+  // Rings SVG
+  const svg=document.getElementById("dc-rings");
+  if(svg){
+    const radii=[44,32,20],sw=9,cx=55,cy=55;
+    svg.innerHTML=rings.map((r,i)=>{
+      const rad=radii[i],circ=2*Math.PI*rad,pct=r.tot>0?r.done/r.tot:0,off=circ*(1-pct);
+      return `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${r.col}" stroke-width="${sw}" stroke-opacity=".15"/>
+      <circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${r.col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cy})" style="transition:stroke-dashoffset .8s"/>`;
+    }).join("");
+  }
+
+  // Charts
+  const isDark=document.documentElement.getAttribute("data-theme")==="dark"||(!document.documentElement.hasAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);
+  const gc=isDark?"rgba(255,255,255,.06)":"rgba(0,0,0,.06)";
+  const tc=isDark?"#797876":"#7a7974";
+  Chart.defaults.color=tc; Chart.defaults.font.size=10;
+
+  const phCtx=document.getElementById("dc-phase");
+  if(phCtx){_dCharts.ph=new Chart(phCtx,{type:"bar",data:{labels:Object.keys(phases),datasets:[{label:"%",data:Object.values(phases).map(p=>p.t>0?Math.round(p.dn/p.t*100):0),backgroundColor:["#f59e0b88","#f472b688","#60a5fa88","#4ade8088"],borderColor:["#f59e0b","#f472b6","#60a5fa","#4ade80"],borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:100,grid:{color:gc},ticks:{callback:v=>v+"%"}},x:{grid:{display:false}}}}});}
+
+  const caCtx=document.getElementById("dc-cardio");
+  if(caCtx){_dCharts.ca=new Chart(caCtx,{type:"bar",data:{labels:l14lbl,datasets:[{label:"Run",data:runD,backgroundColor:"#f43f5e88",borderColor:"#f43f5e",borderWidth:2,borderRadius:3,stack:"s"},{label:"Walk",data:walkD,backgroundColor:"#60a5fa66",borderColor:"#60a5fa",borderWidth:2,borderRadius:3,stack:"s"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:8,padding:8}}},scales:{y:{stacked:true,grid:{color:gc}},x:{stacked:true,grid:{display:false},ticks:{maxRotation:0}}}}});}
+
+  const slCtx=document.getElementById("dc-sleep");
+  if(slCtx){_dCharts.sl=new Chart(slCtx,{type:"line",data:{labels:l14lbl,datasets:[{label:"Sleep (h)",data:sleepD,borderColor:"#818cf8",backgroundColor:"#818cf818",pointRadius:3,tension:.4,yAxisID:"y"},{label:"Water (L)",data:waterD,borderColor:"#38bdf8",backgroundColor:"#38bdf818",pointRadius:3,tension:.4,yAxisID:"y2"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{boxWidth:8,padding:8}}},scales:{y:{grid:{color:gc},min:0,max:10,title:{display:true,text:"hrs"}},y2:{position:"right",grid:{display:false},min:0,max:4,title:{display:true,text:"L"}},x:{grid:{display:false},ticks:{maxRotation:0}}}}});}
+
+  // Radar
+  const last7r=[]; for(let i=6;i>=0;i--){const d=new Date(tDate);d.setDate(tDate.getDate()-i);last7r.push(d.toISOString().slice(0,10));}
+  const rLabels=["Cardio","Strength","Core","Recovery","Study","Sleep"];
+  const rData=rLabels.map((_,li)=>Math.round(last7r.reduce((acc,d)=>{
+    const h=SH[d]||{};
+    const scores=[
+      (["walk","run"].filter(id=>{const hh=HABITS.find(x=>x.id===id);const v=h[id];return hh&&v!==undefined&&habitEarned(hh,v)}).length/2)*100,
+      (["pushup","pullup","squat","lunge"].filter(id=>{const hh=HABITS.find(x=>x.id===id);const v=h[id];return hh&&v!==undefined&&habitEarned(hh,v)}).length/4)*100,
+      (["crunch","plank"].filter(id=>{const hh=HABITS.find(x=>x.id===id);const v=h[id];return hh&&v!==undefined&&habitEarned(hh,v)}).length/2)*100,
+      (["stretch","water"].filter(id=>{const hh=HABITS.find(x=>x.id===id);const v=h[id];return hh&&v!==undefined&&habitEarned(hh,v)}).length/2)*100,
+      (()=>{const dd=PLAN.find(x=>x.date===d);if(!dd||!dd.tasks.length)return 0;return Math.round(dd.tasks.filter(t=>S.done[t.id]).length/dd.tasks.length*100);})(),
+      (()=>{const v=h.sleep;return v&&v>=7?100:(v?Math.round(v/7*100):0);})()
+    ];
+    return acc+scores[li];
+  },0)/7));
+  const rdCtx=document.getElementById("dc-radar");
+  if(rdCtx){_dCharts.rd=new Chart(rdCtx,{type:"radar",data:{labels:rLabels,datasets:[{label:"7-day avg",data:rData,backgroundColor:"rgba(245,158,11,.15)",borderColor:"#f59e0b",pointBackgroundColor:"#f59e0b",pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,grid:{color:gc},ticks:{display:false},pointLabels:{color:tc,font:{size:11}}}}}});}
+}
+
+let currentTab = 'study';
+
+// Boot
+render();
+toast("⚔️","Campaign Loaded!","Today's quests await. Let's grind.");
+
+// Scroll today into sidebar view
+setTimeout(()=>{
+  const active=document.querySelector(".sidebar .today-item, .sidebar .active");
+  if(active)active.scrollIntoView({block:"center",behavior:"smooth"});
+},200);
+</script>
+</body>
+</html>
